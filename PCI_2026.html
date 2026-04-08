@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCI 2026 — Pedidos de Cooperação de Instrução</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f3;color:#1a1a18;padding:1.5rem}
+h1{font-size:20px;font-weight:500;margin-bottom:4px}
+.subtitle{font-size:13px;color:#6b6b66;margin-bottom:1.25rem}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.25rem}
+.metric{background:#ebebea;border-radius:8px;padding:.85rem 1rem}
+.metric-label{font-size:12px;color:#6b6b66;margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:500}
+.tabs{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.tab{padding:5px 14px;font-size:12.5px;border:0.5px solid #b0b0aa;border-radius:20px;cursor:pointer;background:#fff;color:#6b6b66}
+.tab.active{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.filters select,.filters input{font-size:13px;padding:5px 8px;border-radius:8px;border:0.5px solid #b0b0aa;background:#fff;color:#1a1a18;height:32px}
+.filters input{flex:1;min-width:160px}
+.table-wrap{overflow-x:auto;background:#fff;border-radius:10px;border:0.5px solid #d8d8d2;padding:0}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;padding:8px 10px;font-weight:500;color:#6b6b66;border-bottom:0.5px solid #d8d8d2;white-space:nowrap;font-size:11.5px;background:#fafaf8}
+td{padding:7px 10px;border-bottom:0.5px solid #f0f0ec;color:#1a1a18;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f7f7f5}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-fev{background:#ddeefb;color:#185FA5}.badge-mar{background:#dff0d0;color:#3B6D11}.badge-abr{background:#faeeda;color:#854F0B}.badge-mai{background:#eeedfe;color:#534AB7}.badge-jun{background:#d5f0e6;color:#0F6E56}.badge-jul{background:#fbeaf0;color:#993556}.badge-ago{background:#fae8e2;color:#993C1D}.badge-set{background:#fce8e8;color:#A32D2D}.badge-out{background:#eeeee8;color:#5F5E5A}.badge-nov{background:#fdeec8;color:#633806}.badge-dez{background:#eeedfe;color:#534AB7}
+.section-header{font-size:13px;font-weight:500;color:#6b6b66;padding:6px 0 4px;border-bottom:0.5px solid #d8d8d2;margin:1.25rem 0 0.75rem}
+.chart-wrap{background:#fff;border-radius:10px;border:0.5px solid #d8d8d2;padding:1rem;margin-bottom:1rem}
+.no-results{text-align:center;padding:2rem;color:#6b6b66;font-size:13px;background:#fff;border-radius:10px;border:0.5px solid #d8d8d2}
+@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr)}.filters{flex-direction:column}.filters input,.filters select{width:100%}}
+</style>
+</head>
+<body>
+<h1>PCI 2026 — Pedidos de Cooperação de Instrução</h1>
+<p class="subtitle">Relatório Consolidado · 6ª Brigada de Infantaria Blindada</p>
+
+<div class="metrics" id="metrics"></div>
+
+<div class="tabs">
+  <button class="tab active" onclick="setView('cronograma',this)">Cronograma 2026</button>
+  <button class="tab" onclick="setView('planejados',this)">PCI do CI Bld</button>
+  <button class="tab" onclick="setView('graficos',this)">Gráficos</button>
+</div>
+
+<div id="view-cronograma">
+  <div class="filters">
+    <select id="filtroMes" onchange="renderCronograma()"><option value="">Todos os meses</option></select>
+    <select id="filtroApoiada" onchange="renderCronograma()"><option value="">Todas as OM Apoiadas</option></select>
+    <select id="filtroApoiadora" onchange="renderCronograma()"><option value="">Todas as OM Apoiadoras</option></select>
+    <input id="busca" placeholder="Buscar objetivo, participantes, OM..." oninput="renderCronograma()">
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>#</th><th>Mês</th><th>Nº Ficha</th><th>Período</th><th>OM Apoiada</th><th>OM Apoiadora</th><th>Participantes</th><th>Objetivo</th><th>OBS</th></tr></thead><tbody id="tbody"></tbody></table></div>
+  <div id="no-results" class="no-results" style="display:none">Nenhum resultado encontrado.</div>
+</div>
+
+<div id="view-planejados" style="display:none">
+  <div class="filters">
+    <select id="filtroApoiada2" onchange="renderPlan3()"><option value="">Todas as OM Apoiadas</option></select>
+    <select id="filtroApoiadora2" onchange="renderPlan3()"><option value="">Todas as OM Apoiadoras</option></select>
+    <input id="busca2" placeholder="Buscar objetivo, OM..." oninput="renderPlan3()">
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>#</th><th>OM Apoiada</th><th>OM Apoiadora</th><th>Participantes</th><th>Objetivo</th><th>OBS</th></tr></thead><tbody id="tbody2"></tbody></table></div>
+  <div id="no-results2" class="no-results" style="display:none">Nenhum resultado encontrado.</div>
+</div>
+
+<div id="view-graficos" style="display:none">
+  <div class="section-header">PCI por mês (cronograma)</div>
+  <div class="chart-wrap" style="position:relative;height:220px"><canvas id="chart1" role="img" aria-label="PCI por mês">Distribuição de PCI por mês</canvas></div>
+  <div class="section-header">PCI por OM Apoiadora (top 10)</div>
+  <div class="chart-wrap" style="position:relative;height:340px"><canvas id="chart2" role="img" aria-label="PCI por OM Apoiadora">PCI por OM Apoiadora</canvas></div>
+  <div class="section-header">PCI por OM Apoiada</div>
+  <div class="chart-wrap" style="position:relative;height:300px"><canvas id="chart3" role="img" aria-label="PCI por OM Apoiada">PCI por OM Apoiada</canvas></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const MESES=['FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+const BADGE={FEVEREIRO:'fev',MARÇO:'mar',ABRIL:'abr',MAIO:'mai',JUNHO:'jun',JULHO:'jul',AGOSTO:'ago',SETEMBRO:'set',OUTUBRO:'out',NOVEMBRO:'nov',DEZEMBRO:'dez'};
+
+const pcis=[
+{nr:1,ficha:'1.4.024',periodo:'23 a 27',apoiada:'EASA',apoiadora:'1ºRCC',partic:'Alunos CAV e Eng',obj:'Instrução Mov e Manobra e Conhecer as OM',obs:'',mes:'FEVEREIRO'},
+{nr:2,ficha:'1.4.031',periodo:'23 a 27',apoiada:'EASA',apoiadora:'4º B Log',partic:'Alunos',obj:'Apoio logístico',obs:'',mes:'FEVEREIRO'},
+{nr:3,ficha:'1.4.020',periodo:'23 a 27',apoiada:'EASA',apoiadora:'29º BIB',partic:'Alunos',obj:'Instrução tropa Bld',obs:'',mes:'FEVEREIRO'},
+{nr:4,ficha:'1.4.022',periodo:'26/02',apoiada:'EASA',apoiadora:'3º GAC AP',partic:'Alunos Art',obj:'Apoio logístico',obs:'',mes:'FEVEREIRO'},
+{nr:5,ficha:'2.2.201',periodo:'23 a 27 FEV',apoiada:'ESAO',apoiadora:'1º RCC',partic:'3 militares',obj:'Rec ET C Cav',obs:'',mes:'FEVEREIRO'},
+{nr:6,ficha:'2.2.508',periodo:'23 a 27 FEV',apoiada:'ESAO',apoiadora:'3ª Cia Com',partic:'3 militares',obj:'Rec ET C Com',obs:'',mes:'FEVEREIRO'},
+{nr:7,ficha:'2.2.514',periodo:'23 a 27 FEV',apoiada:'ESAO',apoiadora:'4º B Log',partic:'3 militares',obj:'Rec ET C Com',obs:'',mes:'FEVEREIRO'},
+{nr:8,ficha:'2.2.205',periodo:'23 a 27 FEV',apoiada:'ESAO',apoiadora:'4º RCC',partic:'3 militares',obj:'Rec ET C Cav',obs:'',mes:'FEVEREIRO'},
+{nr:9,ficha:'2.2.202',periodo:'23 a 27 FEV',apoiada:'ESAO',apoiadora:'6º Esqd C Mec',partic:'3 militares',obj:'Rec ET C Cav',obs:'',mes:'FEVEREIRO'},
+{nr:10,ficha:'2.2.109',periodo:'22 a 27 FEV',apoiada:'ESAO',apoiadora:'29º BIB',partic:'3 militares',obj:'Rec ET C Inf',obs:'',mes:'FEVEREIRO'},
+{nr:11,ficha:'2.2.206',periodo:'23 a 27 FEV',apoiada:'ESAO',apoiadora:'29º BIB',partic:'3 militares',obj:'Rec ET C Cav',obs:'',mes:'FEVEREIRO'},
+{nr:12,ficha:'1.4.048',periodo:'9 a 13 MAR',apoiada:'EASA',apoiadora:'7º BIB',partic:'Alunos',obj:'Instrução de regência de banda',obs:'',mes:'MARÇO'},
+{nr:13,ficha:'1',periodo:'16 a 20 MAR',apoiada:'CA-Sul',apoiadora:'6º Esqd C Mec',partic:'Instruendos OCA',obj:'Apoiar o estágio de OCA',obs:'',mes:'MARÇO'},
+{nr:14,ficha:'2.2.110',periodo:'22 a 27 MAR',apoiada:'ESAO',apoiadora:'29º BIB',partic:'3 militares',obj:'Rec ET C Inf',obs:'',mes:'MARÇO'},
+{nr:15,ficha:'2.2.207',periodo:'5 a 11 ABR',apoiada:'ESAO',apoiadora:'1º RCC',partic:'Alunos C Cav',obj:'ET Op Ofensivas',obs:'',mes:'ABRIL'},
+{nr:16,ficha:'2.2.212',periodo:'5 a 11 ABR',apoiada:'ESAO',apoiadora:'29º BIB',partic:'Alunos C Cav',obj:'ET Op Ofensivas',obs:'',mes:'ABRIL'},
+{nr:17,ficha:'2.2.211',periodo:'5 a 9 ABR',apoiada:'ESAO',apoiadora:'4º RCC',partic:'Alunos C Cav',obj:'ET Op Ofensivas',obs:'',mes:'ABRIL'},
+{nr:18,ficha:'2.2.208',periodo:'5 a 9 ABR',apoiada:'ESAO',apoiadora:'6º Esqd C Mec',partic:'Alunos C Cav',obj:'ET Op Ofensivas',obs:'',mes:'ABRIL'},
+{nr:19,ficha:'2.2.104',periodo:'5 a 10 ABR',apoiada:'ESAO',apoiadora:'29º BIB',partic:'Alunos C Inf',obj:'ET',obs:'',mes:'ABRIL'},
+{nr:20,ficha:'26.6.006',periodo:'8 a 22 MAIO',apoiada:'C I Op Esp',apoiadora:'3ª Cia Com',partic:'Alunos do curso',obj:'Apoio ao Curso de Forças Especiais',obs:'',mes:'MAIO'},
+{nr:21,ficha:'26.6.008',periodo:'8 a 22 MAIO',apoiada:'C I Op Esp',apoiadora:'4º B Log',partic:'Alunos do curso',obj:'Apoio ao Curso de Forças Especiais',obs:'',mes:'MAIO'},
+{nr:22,ficha:'26.6.012',periodo:'8 a 22 MAIO',apoiada:'C I Op Esp',apoiadora:'6ª Bia AAAe AP',partic:'Alunos do curso',obj:'Apoio ao Curso de Forças Especiais',obs:'',mes:'MAIO'},
+{nr:23,ficha:'26.6.007',periodo:'8 a 22 MAIO',apoiada:'C I Op Esp',apoiadora:'6º Esqd C Mec',partic:'Alunos do curso',obj:'Apoio ao Curso de Forças Especiais',obs:'',mes:'MAIO'},
+{nr:24,ficha:'26.6.009',periodo:'8 a 22 MAIO',apoiada:'C I Op Esp',apoiadora:'29º BIB',partic:'Alunos do curso',obj:'Apoio ao Curso de Forças Especiais',obs:'',mes:'MAIO'},
+{nr:25,ficha:'1.4.023',periodo:'18 a 22 MAIO',apoiada:'EASA',apoiadora:'7º BIB',partic:'Alunos',obj:'Instruções de tropa Bld',obs:'',mes:'MAIO'},
+{nr:26,ficha:'1.4.014',periodo:'18 a 22 MAIO',apoiada:'EASA',apoiadora:'12º BE Cmb Bld',partic:'Alunos',obj:'Exercício no terreno',obs:'',mes:'MAIO'},
+{nr:27,ficha:'1.4.039',periodo:'18 a 22 MAIO',apoiada:'EASA',apoiadora:'12º BE Cmb Bld',partic:'Alunos',obj:'Demonstração de transposição de curso d\'água',obs:'',mes:'MAIO'},
+{nr:28,ficha:'2.2.515',periodo:'20 a 23 MAIO',apoiada:'ESAO',apoiadora:'4º B Log',partic:'Cap Al C Com',obj:'ET',obs:'',mes:'MAIO'},
+{nr:29,ficha:'1.1.006',periodo:'25 a 29 MAIO',apoiada:'9ª Bda Inf Mtz',apoiadora:'6º Esqd C Mec',partic:'30 militares',obj:'Instrução Vtr Centauro',obs:'',mes:'MAIO'},
+{nr:30,ficha:'1.1.006',periodo:'25 a 29 MAIO',apoiada:'9ª Bda Inf Mtz',apoiadora:'Cia C',partic:'30 militares',obj:'Alojamento',obs:'',mes:'MAIO'},
+{nr:31,ficha:'1.5.401',periodo:'26/05',apoiada:'ESA',apoiadora:'12º BE Cmb Bld',partic:'Alunos',obj:'Instrução portada pesada',obs:'',mes:'MAIO'},
+{nr:32,ficha:'1.5.304',periodo:'5 a 14 Jun',apoiada:'ESA',apoiadora:'3º GAC AP',partic:'7 militares',obj:'Semana da ART',obs:'',mes:'JUNHO'},
+{nr:33,ficha:'2.2.317',periodo:'15 a 19 JUN',apoiada:'ESAO',apoiadora:'3º GAC AP',partic:'3 militares',obj:'Rec ET',obs:'',mes:'JUNHO'},
+{nr:34,ficha:'6',periodo:'22 a 26',apoiada:'1º Esqd C Pqdt',apoiadora:'1º RCC',partic:'40 militares',obj:'Alojamento e alimentação',obs:'',mes:'JUNHO'},
+{nr:35,ficha:'2.81.002',periodo:'23 a 24 JUL',apoiada:'1º B Com',apoiadora:'3ª Cia Com',partic:'Alunos NPOR',obj:'ET',obs:'',mes:'JULHO'},
+{nr:36,ficha:'1.4.020',periodo:'23 a 27',apoiada:'EASA',apoiadora:'29º BIB',partic:'Alunos',obj:'Instrução tropa Bld',obs:'',mes:'AGOSTO'},
+{nr:37,ficha:'1.4.024',periodo:'3 a 7 AGO',apoiada:'EASA',apoiadora:'1ºRCC',partic:'Alunos CAV e Eng',obj:'Instrução Mov e Manobra e Conhecer as OM',obs:'',mes:'AGOSTO'},
+{nr:38,ficha:'1.4.022',periodo:'4 a 6 AGO',apoiada:'EASA',apoiadora:'3º GAC AP',partic:'Alunos Art',obj:'Apoio logístico',obs:'',mes:'AGOSTO'},
+{nr:39,ficha:'2.2.333',periodo:'16 a 21 AGO',apoiada:'ESAO',apoiadora:'3º GAC AP',partic:'Cap Al Art',obj:'ET',obs:'',mes:'AGOSTO'},
+{nr:40,ficha:'2.2.337',periodo:'19 AGO',apoiada:'ESAO',apoiadora:'6ª Bia AAAe AP',partic:'Cap Al Art',obj:'ET',obs:'',mes:'AGOSTO'},
+{nr:41,ficha:'2.8.302',periodo:'12 a 14 AGO',apoiada:'CPOR/PA (C Art)',apoiadora:'3º GAC AP',partic:'Alunos CPOR',obj:'REOP bateria de obuses',obs:'Pessoal e material',mes:'AGOSTO'},
+{nr:42,ficha:'2.3.383',periodo:'6 a 11 SET 26',apoiada:'AMAN',apoiadora:'29º BIB',partic:'2 militares',obj:'Rec ET Inf Bld',obs:'',mes:'AGOSTO'},
+{nr:43,ficha:'1.4.031',periodo:'23 a 27',apoiada:'EASA',apoiadora:'4º B Log',partic:'Alunos',obj:'Apoio logístico',obs:'',mes:'AGOSTO'},
+{nr:44,ficha:'2.3.276',periodo:'23 a 29 AGO',apoiada:'AMAN',apoiadora:'3º GAC AP',partic:'C Art AMAN',obj:'Exercício no terreno (ET) SM',obs:'Pessoal e material',mes:'AGOSTO'},
+{nr:45,ficha:'2.3.282',periodo:'24 a 28 AGO',apoiada:'AMAN',apoiadora:'29º BIB',partic:'C Inf AMAN',obj:'ET Inf Bld',obs:'Pessoal e material',mes:'AGOSTO'},
+{nr:46,ficha:'2.82.002',periodo:'9 SET',apoiada:'3º GAAAe',apoiadora:'6ª Bia AAAe AP',partic:'Alunos NPOR',obj:'Conhecer a OM',obs:'',mes:'SETEMBRO'},
+{nr:47,ficha:'2.82.003',periodo:'11 SET',apoiada:'3º GAAAe',apoiadora:'3º GAC AP',partic:'Alunos NPOR',obj:'Conhecer a OM',obs:'',mes:'SETEMBRO'},
+{nr:48,ficha:'2.811.004',periodo:'14 a 19 SET',apoiada:'28º GAC',apoiadora:'3º GAC AP',partic:'Alunos NPOR',obj:'Conhecer a OM',obs:'',mes:'SETEMBRO'},
+{nr:49,ficha:'2.811.003',periodo:'17 SET',apoiada:'28º GAC',apoiadora:'6ª Bia AAAe AP',partic:'Alunos NPOR',obj:'Conhecer a OM',obs:'',mes:'SETEMBRO'},
+{nr:50,ficha:'2.86.003',periodo:'24 SET',apoiada:'19º R C Mec',apoiadora:'1º RCC',partic:'Alunos NPOR',obj:'Conhecer a OM',obs:'',mes:'SETEMBRO'},
+{nr:51,ficha:'2.1113.004',periodo:'24 SET',apoiada:'Pq R Mnt/3ª RM',apoiadora:'4º B Log',partic:'Alunos NPOR',obj:'Conhecer a OM',obs:'',mes:'SETEMBRO'},
+{nr:52,ficha:'1.5.218',periodo:'21 SET a 3 OUT',apoiada:'ESA',apoiadora:'4º B Log',partic:'Alunos C Cav',obj:'Apoio logístico',obs:'',mes:'SETEMBRO'},
+{nr:53,ficha:'1.5.219',periodo:'28 SET',apoiada:'ESA',apoiadora:'6º Esqd C Mec',partic:'Alunos C Cav',obj:'Instrução Vtr Bld',obs:'',mes:'SETEMBRO'},
+{nr:54,ficha:'1.5.221',periodo:'30 Set a 1 OUT',apoiada:'ESA',apoiadora:'1º RCC',partic:'Alunos C Cav',obj:'Instrução Vtr Bld',obs:'',mes:'SETEMBRO'},
+{nr:55,ficha:'2.84.002',periodo:'30 SET',apoiada:'3º R C Mec',apoiadora:'1º RCC',partic:'Alunos NPOR',obj:'Conhecer a OM',obs:'',mes:'SETEMBRO'},
+{nr:56,ficha:'11/s3',periodo:'29 SET',apoiada:'IME',apoiadora:'1º RCC',partic:'Alunos IME',obj:'Almoço',obs:'',mes:'SETEMBRO'},
+{nr:57,ficha:'1.6.089',periodo:'5 a 9 OUT',apoiada:'Es Log',apoiadora:'4º B Log',partic:'Alunos',obj:'Conhecer OM',obs:'',mes:'OUTUBRO'},
+{nr:58,ficha:'2.8.205',periodo:'07 OUT',apoiada:'CPOR/PA (C Cav)',apoiadora:'1ºRCC',partic:'Alunos CPOR',obj:'Realizar Op simulada de ataque Pel CC',obs:'Pessoal e material',mes:'OUTUBRO'},
+{nr:59,ficha:'2.8.206',periodo:'8 OUT',apoiada:'CPOR/PA (C Cav)',apoiadora:'6º Esqd C Mec',partic:'Alunos CPOR',obj:'Conhecer CENTAURO II e GUARANI',obs:'Pessoal e material',mes:'OUTUBRO'},
+{nr:60,ficha:'1.5.236',periodo:'12 a 18 OUT',apoiada:'ESA',apoiadora:'1º RCC',partic:'Alunos C Cav',obj:'EPCT',obs:'',mes:'OUTUBRO'},
+{nr:61,ficha:'1.5.235',periodo:'12 a 18 OUT',apoiada:'ESA',apoiadora:'6º Esqd C Mec',partic:'Alunos C Cav',obj:'EPCT',obs:'',mes:'OUTUBRO'},
+{nr:62,ficha:'1.4.044',periodo:'19 a 23 OUT',apoiada:'EASA',apoiadora:'4º RCC',partic:'Alunos',obj:'Instrução movimento e manobra',obs:'',mes:'OUTUBRO'},
+{nr:63,ficha:'1.4.023',periodo:'19 a 23 OUT',apoiada:'EASA',apoiadora:'7º BIB',partic:'Alunos',obj:'Instruções de tropa Bld',obs:'',mes:'OUTUBRO'},
+{nr:64,ficha:'2.8.101',periodo:'26 e 27 OUT',apoiada:'CPOR/PA (C Inf)',apoiadora:'7º BIB',partic:'Alunos CPOR',obj:'Emprego Batalhão Blindado',obs:'Pessoal e material',mes:'OUTUBRO'},
+{nr:65,ficha:'2.83.205',periodo:'29 OUT',apoiada:'3º GAC AP',apoiadora:'6ª Bia AAAe AP',partic:'Alunos NPOR',obj:'Conhecer a OM',obs:'',mes:'OUTUBRO'},
+{nr:66,ficha:'2.8.502',periodo:'6 NOV',apoiada:'CPOR/PA (C Int)',apoiadora:'4º B Log',partic:'Alunos CPOR',obj:'Desdobramento BLB',obs:'Pessoal e material',mes:'NOVEMBRO'},
+];
+
+const plan3=[
+{nr:1,apoiada:'CI Bld',apoiadora:'1º RCC',partic:'Alunos do CI Bld',obj:'Apoiar o Curso de Manutenção de Chassi da VBCCC Leopard 1BR',obs:'Apoiar com material'},
+{nr:2,apoiada:'CI Bld',apoiadora:'1º RCC',partic:'Alunos do CI Bld',obj:'Apoiar o Curso de Manutenção de Torre da VBCCC Leopard 1 A5 BR',obs:'Pessoal e material'},
+{nr:3,apoiada:'CI Bld',apoiadora:'4º B Log',partic:'Alunos do CI Bld',obj:'Apoiar o Curso de Manutenção de Torre da VBCCC Leopard 1 A5 BR',obs:'Pessoal e material'},
+{nr:4,apoiada:'CI Bld',apoiadora:'4º RCC',partic:'Alunos do CI Bld',obj:'Apoiar o Curso de Manutenção de Torre da VBCCC Leopard 1 A5 BR',obs:'Pessoal e material'},
+{nr:5,apoiada:'CI Pqdt GPB',apoiadora:'29º BIB',partic:'14 militares',obj:'Utlz Vtr Rec Op Rincão',obs:'Pessoal e material'},
+{nr:6,apoiada:'CI Pqdt GPB',apoiadora:'Cia C 6ª Bda',partic:'5 militares',obj:'Utlz Vtr Rec Op Rincão',obs:'Pessoal e material'},
+{nr:7,apoiada:'CI Pqdt GPB',apoiadora:'3º GAC AP',partic:'14 militares',obj:'Utlz Vtr Rec Op Rincão',obs:'Pessoal e material'},
+{nr:8,apoiada:'CI Bld',apoiadora:'7º BIB',partic:'Alunos do CI Bld',obj:'Apoiar o Curso de Manutenção de chassi da VBTP MR 6X6 Guarani',obs:'Pessoal'},
+{nr:9,apoiada:'ESA',apoiadora:'4º B Log',partic:'95 militares',obj:'Apoio em alojamento, alimentação',obs:''},
+{nr:10,apoiada:'ESA',apoiadora:'6º Esqd C Mec',partic:'94 militares',obj:'Apoio de Vtr',obs:'Pessoal e material'},
+{nr:11,apoiada:'CIBld',apoiadora:'6º Esqd C Mec',partic:'Alunos do CI Bld',obj:'Apoio de pessoal, material e viatura ao Estg Tático Pel Exp',obs:'Pessoal e material'},
+{nr:12,apoiada:'CIBld',apoiadora:'29º BIB',partic:'Alunos do CI Bld',obj:'Apoio de pessoal, material e viatura ao Estg Tático Pel Exp',obs:'Pessoal e material'},
+{nr:13,apoiada:'CIBld',apoiadora:'1º RCC',partic:'Alunos do CI Bld',obj:'Apoio de pessoal, material e viatura ao Estg Tático Pel Exp',obs:'Pessoal e material'},
+{nr:14,apoiada:'CIBld',apoiadora:'3ª Cia Com Bld',partic:'Alunos do CI Bld',obj:'Apoio de pessoal, material e viatura ao Estg Tático Pel Exp',obs:'Pessoal e material'},
+{nr:15,apoiada:'CIBld',apoiadora:'7º BIB',partic:'Alunos do CI Bld',obj:'Apoio de pessoal, material e viatura ao Estg Tático Pel Exp',obs:'Pessoal e material'},
+{nr:16,apoiada:'CIBld',apoiadora:'4º B Log',partic:'Alunos do CI Bld',obj:'Estágio de VBCCC M 60 A3 TTS',obs:'Pessoal e material'},
+{nr:17,apoiada:'CIBld',apoiadora:'4º RCC',partic:'Alunos do CI Bld',obj:'Estágio de VBCCC M 60 A3 TTS',obs:'Pessoal e material'},
+{nr:18,apoiada:'ESA',apoiadora:'1º RCC',partic:'80 alunos',obj:'Conhecer a OM',obs:''},
+{nr:19,apoiada:'EASA',apoiadora:'Cmdo 6ª Bda Inf Bld',partic:'1 militar',obj:'Palestra sobre a função do Adj Cmdo',obs:'Pessoal e material'},
+{nr:20,apoiada:'EASA',apoiadora:'4º B Log',partic:'111 militares',obj:'Apoio de alojamento e alimentação',obs:'Pessoal e material'},
+{nr:21,apoiada:'EASA',apoiadora:'4º B Log',partic:'111 militares',obj:'Conhecer a OM',obs:'Pessoal e material'},
+{nr:22,apoiada:'EASA',apoiadora:'4º B Log',partic:'58 militares',obj:'Apoio de transporte',obs:'Pessoal e material'},
+{nr:23,apoiada:'EASA',apoiadora:'29º BIB',partic:'111 militares',obj:'Instrução VBTP M113',obs:'Pessoal e material'},
+{nr:24,apoiada:'EASA',apoiadora:'1º RCC',partic:'200 militares',obj:'Demonstração de ataque de posição sumariamente organizada',obs:'Pessoal e material'},
+{nr:25,apoiada:'EASA',apoiadora:'1º RCC',partic:'58 militares',obj:'Conhecer a OM',obs:'Pessoal e material'},
+{nr:26,apoiada:'EASA',apoiadora:'6ª Bia AAAe AP',partic:'40 militares',obj:'Conhecer a OM',obs:'Pessoal e material'},
+{nr:27,apoiada:'EASA',apoiadora:'6ª Bia AAAe AP',partic:'200 militares',obj:'Realizar defesa antiaérea',obs:'Pessoal e material'},
+{nr:28,apoiada:'EASA',apoiadora:'29º BIB',partic:'111 militares',obj:'Demonstração ataque de FT SU Bld',obs:'Pessoal e material'},
+{nr:29,apoiada:'EASA',apoiadora:'12º BE Cmb Bld',partic:'42 militares',obj:'Conhecer emprego, capacidade e limitações da engenharia',obs:'Pessoal e material'},
+{nr:30,apoiada:'EASA',apoiadora:'1º RCC',partic:'Instrutores e Alunos',obj:'Apoiar a demonstração de uma SU Bld com abertura de brechas',obs:'Pessoal e material'},
+{nr:31,apoiada:'EASA',apoiadora:'1º RCC',partic:'Instrutores e Alunos',obj:'Atualizar sargento CAS no emprego de MEM blindado',obs:'Pessoal e material'},
+{nr:32,apoiada:'EASA',apoiadora:'6º Esqd C Mec',partic:'Instrutores e Alunos',obj:'Demonstração de ataque (Força Oponente) — 1° Turno',obs:''},
+{nr:33,apoiada:'EASA',apoiadora:'3º GAC AP',partic:'Instrutores e Alunos',obj:'Alimentação, alojamento, instrução, demonstração REOP',obs:''},
+{nr:34,apoiada:'EASA',apoiadora:'Cia C',partic:'Instrutores e Alunos',obj:'Demonstração de PC de Bda (COT, COL, PCT)',obs:''},
+{nr:35,apoiada:'EASA',apoiadora:'3º GAC AP',partic:'41 militares',obj:'Conhecer a organização e as capacidades da OM',obs:'Pessoal e material'},
+{nr:36,apoiada:'AMAN',apoiadora:'6ª Bia AAAe AP',partic:'138 militares',obj:'Estágio técnico de blindados',obs:''},
+{nr:37,apoiada:'AMAN',apoiadora:'12º BE Cmb Bld',partic:'138 militares',obj:'Estágio técnico tático de Blindados para cadetes',obs:'Pessoal e material'},
+{nr:38,apoiada:'AMAN',apoiadora:'4º B Log',partic:'138 militares',obj:'Estágio técnico e tático de blindados',obs:'Pessoal e material'},
+{nr:39,apoiada:'AMAN',apoiadora:'6º Esqd C Mec',partic:'138 militares',obj:'Estágio técnico tático de Blindados para cadetes',obs:'Pessoal e material'},
+{nr:41,apoiada:'AMAN',apoiadora:'7º BIB',partic:'138 militares',obj:'Visitação',obs:'Pessoal'},
+{nr:44,apoiada:'CIBld',apoiadora:'12º BE Cmb Bld',partic:'Alunos do CI Bld',obj:'Apoio de Vtr para Curso Op VBTP Guarani (1° Turno)',obs:'Pessoal e material'},
+{nr:45,apoiada:'CIBld',apoiadora:'6º Esqd C Mec',partic:'Alunos do CI Bld',obj:'Apoio de Vtr para Curso Op VBTP Guarani (1° Turno)',obs:'Pessoal e material'},
+{nr:48,apoiada:'AMAN',apoiadora:'3º GAC AP',partic:'14 militares',obj:'Visita de representação',obs:'Material'},
+{nr:49,apoiada:'CIBld',apoiadora:'3º GAC AP',partic:'—',obj:'Empréstimo de material (M109 e M992) e pessoal',obs:'Pessoal e material'},
+{nr:50,apoiada:'CIBld',apoiadora:'3º GAC AP',partic:'—',obj:'Apoiar curso de manutenção de Torre da VBCOOAP M108/109 A3',obs:'Pessoal e material'},
+{nr:51,apoiada:'CPOR/PA',apoiadora:'3º GAC AP',partic:'34 militares',obj:'Visitar OM',obs:'Pessoal e material'},
+{nr:52,apoiada:'AMAN',apoiadora:'3ª Cia Com Bld',partic:'38 militares',obj:'Conhecer a organização e as capacidades da OM',obs:'Pessoal — Mudou a DATA'},
+{nr:54,apoiada:'CI Bld',apoiadora:'1º RCC',partic:'Alunos do CI Bld',obj:'Curso Avançado de Tiro — VBCCC Leopard 1 A5 BR',obs:''},
+{nr:55,apoiada:'CI Bld',apoiadora:'4º B Log',partic:'Alunos do CI Bld',obj:'Curso Avançado de Tiro — VBCCC Leopard 1 A5 BR',obs:'Pessoal e material'},
+{nr:56,apoiada:'CI Bld',apoiadora:'4º RCC',partic:'Alunos do CI Bld',obj:'Curso Avançado de Tiro — VBCCC Leopard 1 A5 BR',obs:'Pessoal e material'},
+{nr:58,apoiada:'CI Bld',apoiadora:'1º RCC',partic:'Alunos do CI Bld',obj:'Curso de Operação da VBE Soc Leo 1 BR',obs:'Pessoal e material'},
+{nr:59,apoiada:'CI Bld',apoiadora:'12º BE Cmb Bld',partic:'Alunos do CI Bld',obj:'Curso de Operação da VBEL Pnt',obs:'Pessoal e material'},
+{nr:60,apoiada:'CI Bld',apoiadora:'4º B Log',partic:'Alunos do CI Bld',obj:'Curso de Operação da VBE Soc Leo 1 BR',obs:'Pessoal e material'},
+{nr:61,apoiada:'EsAO',apoiadora:'3º GAC AP',partic:'Instrutores',obj:'Apoio em alojamento, alimentação, transporte – Rec Exc',obs:''},
+{nr:62,apoiada:'6ª Bia AAAe',apoiadora:'ALA 4',partic:'—',obj:'Conhecer as atividades de controle e defesa do espaço aéreo',obs:'Solicita apoio'},
+{nr:63,apoiada:'1º BAVEX',apoiadora:'6º Esqd C Mec',partic:'12 militares',obj:'Adestramento conjunto de FT SU',obs:'Pessoal e material'},
+{nr:64,apoiada:'1º BAVEX',apoiadora:'4º B Log',partic:'12 militares',obj:'Adestramento conjunto de FT SU',obs:'Pessoal e material'},
+{nr:66,apoiada:'EsAO',apoiadora:'6º Esqd C Mec',partic:'3 militares',obj:'Reconhecimento',obs:''},
+{nr:67,apoiada:'EsAO',apoiadora:'1º RCC',partic:'3 militares',obj:'Reconhecimento',obs:'Pessoal e material'},
+{nr:68,apoiada:'NPOR 3º GAAAe',apoiadora:'3º GAC AP',partic:'Instrutores e Alunos',obj:'Apoio em alimentação, alojamento, instrução',obs:''},
+{nr:70,apoiada:'CI Bld',apoiadora:'29º BIB',partic:'Alunos do CI Bld',obj:'Curso de Operação de Chassi da VBTP M113 BR',obs:'Pessoal e material'},
+{nr:71,apoiada:'CI Bld',apoiadora:'26º Pel PE Mec',partic:'Alunos do CI Bld',obj:'Curso de Operação da VBTP M113 BR',obs:'Pessoal e material'},
+{nr:72,apoiada:'CI Bld',apoiadora:'12º BE Cmb Bld',partic:'Alunos do CI Bld',obj:'Curso de Operação da VBTP M113 BR',obs:'Pessoal e material'},
+{nr:73,apoiada:'CI Bld',apoiadora:'4º B Log',partic:'Alunos do CI Bld',obj:'Curso de Operação da VBTP M113 BR',obs:'Pessoal e material'},
+{nr:74,apoiada:'CI Bld',apoiadora:'7º BIB',partic:'Alunos do CI Bld',obj:'Curso de Operação de Chassi da VBTP M113 BR',obs:'Pessoal e material'},
+{nr:75,apoiada:'CIOpEsp',apoiadora:'3ª Cia Com Bld',partic:'Instrutores CFEsp',obj:'Reconhecimento',obs:'Pessoal e material'},
+{nr:76,apoiada:'CI Bld',apoiadora:'1º RCC',partic:'Alunos do CI Bld',obj:'Curso de Operação de Chassi da VBTP M113 BR',obs:'Pessoal e material'},
+{nr:78,apoiada:'EASA',apoiadora:'12º BE Cmb Bld',partic:'Instrutores e Alunos',obj:'Apoiar demonstração SU Bld com abertura de brechas',obs:'Pessoal e material'},
+{nr:79,apoiada:'EASA',apoiadora:'1º RCC',partic:'Instrutores e Alunos',obj:'Atualizar sargento CAS no emprego de MEM blindado',obs:'Pessoal e material'},
+{nr:80,apoiada:'EASA',apoiadora:'6º Esqd C Mec',partic:'Instrutores e Alunos',obj:'Demonstração de ataque (Força Oponente) — 2° Turno',obs:''},
+{nr:81,apoiada:'EASA',apoiadora:'4º B Log',partic:'58 militares',obj:'Apoio de alojamento e alimentação',obs:'Pessoal e material'},
+{nr:82,apoiada:'EASA',apoiadora:'29º BIB',partic:'111 militares',obj:'Instrução VBTP M113',obs:'Pessoal e material'},
+{nr:83,apoiada:'EASA',apoiadora:'29º BIB',partic:'111 militares',obj:'Demonstração ataque de FT SU Bld',obs:'Pessoal e material'},
+{nr:84,apoiada:'EASA',apoiadora:'3º GAC AP',partic:'Instrutores e Alunos',obj:'Alimentação, alojamento, instrução, demonstração REOP, apoio PO',obs:''},
+{nr:85,apoiada:'EASA',apoiadora:'4º B Log',partic:'111 militares',obj:'Apoio de transporte',obs:'Pessoal e material'},
+{nr:86,apoiada:'EASA',apoiadora:'Cia C',partic:'Instrutores e Alunos',obj:'Demonstração de PC de Bda (COT, COL, PCT)',obs:''},
+{nr:87,apoiada:'EASA',apoiadora:'6ª Bia AAAe AP',partic:'40 militares',obj:'Conhecer a OM',obs:'Pessoal e material'},
+{nr:88,apoiada:'EASA',apoiadora:'1º RCC',partic:'200 militares',obj:'Demonstração de ataque de posição sumariamente organizada',obs:'Pessoal e material'},
+{nr:89,apoiada:'EASA',apoiadora:'1º RCC',partic:'58 militares',obj:'Conhecer a OM',obs:'Pessoal e material'},
+{nr:90,apoiada:'EASA',apoiadora:'4º B Log',partic:'111 militares',obj:'Conhecer a OM',obs:'Pessoal e material'},
+{nr:91,apoiada:'EASA',apoiadora:'6ª Bia AAAe AP',partic:'200 militares',obj:'Realizar defesa antiaérea',obs:'Pessoal e material'},
+{nr:92,apoiada:'EASA',apoiadora:'3º GAC AP',partic:'41 militares',obj:'Conhecer a organização e as capacidades da OM',obs:'Pessoal e material'},
+{nr:93,apoiada:'CIOpEsp',apoiadora:'1º RCC',partic:'CFEsp',obj:'Alojamento, alimentação e vtr',obs:'Material'},
+{nr:94,apoiada:'CIAvEx',apoiadora:'3º GAC AP',partic:'10 militares',obj:'Alojamento, alimentação e vtr',obs:'Material'},
+{nr:96,apoiada:'EsAO',apoiadora:'Cia C 6ª Bda',partic:'3 militares',obj:'1º Rec ET Integrado',obs:''},
+{nr:97,apoiada:'EsIE',apoiadora:'3º GAC AP',partic:'9 militares',obj:'Apoio em alojamento, alimentação, transporte',obs:'Pessoal e material'},
+{nr:98,apoiada:'EASA',apoiadora:'Cmdo 6ª Bda Inf Bld',partic:'1 militar',obj:'Palestra sobre a função do Adj Cmdo',obs:'Pessoal e material'},
+{nr:99,apoiada:'NPOR/1º B Com',apoiadora:'3ª Cia Com Bld',partic:'31 militares',obj:'Identificar estrutura e material da OM',obs:'Pessoal'},
+{nr:100,apoiada:'EsAO',apoiadora:'4º B Log',partic:'171 militares',obj:'Apoiar ET integrado',obs:'Pessoal e material'},
+{nr:101,apoiada:'EsAO',apoiadora:'1º RCC',partic:'82 militares',obj:'Apoiar exercício no terreno de ofensiva',obs:'Pessoal e material'},
+{nr:102,apoiada:'EsAO',apoiadora:'1º RCC',partic:'171 militares',obj:'Apoiar ET integrado',obs:'Pessoal e material'},
+{nr:103,apoiada:'EsAO',apoiadora:'6ª Bia AAAe AP',partic:'171 militares',obj:'Atividades desenvolvidas pela OM',obs:'Pessoal e material'},
+{nr:104,apoiada:'EsAO',apoiadora:'6ª Bia AAAe AP',partic:'171 militares',obj:'Conhecer a OM',obs:'Pessoal e material'},
+{nr:105,apoiada:'EsAO',apoiadora:'6ª Bia AAAe AP',partic:'171 militares',obj:'Apoiar ET integrado',obs:'Pessoal e material'},
+{nr:106,apoiada:'EsAO',apoiadora:'29º BIB',partic:'171 militares',obj:'Apoiar ET integrado',obs:'Pessoal e material'},
+{nr:107,apoiada:'EsAO',apoiadora:'Cia C 6ª Bda',partic:'176 militares',obj:'Apoiar ET integrado',obs:'Pessoal'},
+{nr:108,apoiada:'EsAO',apoiadora:'12º BE Cmb Bld',partic:'177 militares',obj:'Apoiar ET integrado',obs:'Pessoal e material'},
+{nr:109,apoiada:'EsAO',apoiadora:'6º Esqd C Mec',partic:'177 militares',obj:'Apoiar ET integrado',obs:'Pessoal e material'},
+{nr:110,apoiada:'EsAO',apoiadora:'3º GAC AP',partic:'Instrutores e Alunos',obj:'Demonstração RPP',obs:''},
+{nr:111,apoiada:'EsAO',apoiadora:'3º GAC AP',partic:'Instrutores e Alunos',obj:'Apoio em alojamento, alimentação, transporte, demonstação REOP, apoio PO',obs:''},
+{nr:112,apoiada:'ALA 4',apoiadora:'6ª Bia AAAe AP',partic:'30 militares',obj:'Instrução sobre tática e doutrina da artilharia antiaérea',obs:''},
+{nr:113,apoiada:'EsAO',apoiadora:'Cmdo 6ª Bda Inf Bld',partic:'520 militares',obj:'Apresentar a organização da 6ª Bda',obs:''},
+{nr:114,apoiada:'CIBld',apoiadora:'6º Esqd C Mec',partic:'Alunos do CI Bld',obj:'Apoiar com material – Estg Mnt Torre VBR Cascavel',obs:'Material'},
+{nr:115,apoiada:'CIBld',apoiadora:'4º B Log',partic:'Alunos do CI Bld',obj:'Apoiar com material – Estg Mnt Torre VBR Cascavel',obs:'Material'},
+{nr:116,apoiada:'AMAN',apoiadora:'4º B Log',partic:'40 militares',obj:'Apoio a realização de disciplina eletiva',obs:'Pessoal e material'},
+{nr:117,apoiada:'CIOpEsp',apoiadora:'4º B Log',partic:'Alunos CFEsp',obj:'Apoio curso de Forças Especiais',obs:'Pessoal e material'},
+{nr:118,apoiada:'CIBld',apoiadora:'6º Esqd C Mec',partic:'Alunos do CI Bld',obj:'Apoiar com material – Curso Mnt Chassi Urutu/Cascavel',obs:'Material'},
+{nr:119,apoiada:'CIOpEsp',apoiadora:'6º Esqd C Mec',partic:'Alunos CFEsp',obj:'Participar com Pel Mec em reconhecimento e GLO – Faxinal do Soturno',obs:'Pessoal e material'},
+{nr:120,apoiada:'CIOpEsp',apoiadora:'29º BIB',partic:'Alunos CFEsp',obj:'Execução de patrulhas de combate e de reconhecimento',obs:'Pessoal e material'},
+{nr:121,apoiada:'CIOpEsp',apoiadora:'3ª Cia Com Bld',partic:'Alunos CFEsp',obj:'Estabelecer o Sistema C2 Cmb',obs:'Pessoal e material'},
+{nr:122,apoiada:'5ª Subchefia do EME',apoiadora:'3ª DE',partic:'90 militares',obj:'Divulgar ações da 3ª DE',obs:''},
+{nr:123,apoiada:'NPOR 28º GAC',apoiadora:'3º GAC AP',partic:'Instrutores e Alunos',obj:'Alimentação, alojamento, instrução',obs:''},
+{nr:124,apoiada:'CIBld',apoiadora:'6º Esqd C Mec',partic:'Alunos do CI Bld',obj:'Apoiar com material – Curso Op VBTP Guarani',obs:'Pessoal e material'},
+{nr:125,apoiada:'CIBld',apoiadora:'12º BE Cmb Bld',partic:'Alunos do CI Bld',obj:'Apoiar com material – Curso Op VBTP Guarani',obs:'Pessoal e material'},
+{nr:126,apoiada:'EsAO',apoiadora:'1º RCC',partic:'46 militares',obj:'Apoiar a realização da disciplina eletiva Plj',obs:'Pessoal e material'},
+{nr:127,apoiada:'AMAN',apoiadora:'29º BIB',partic:'138 militares',obj:'Estágio técnico e tático de blindados',obs:'Pessoal e material'},
+{nr:128,apoiada:'AMAN',apoiadora:'1º RCC',partic:'138 militares',obj:'Estágio técnico de blindados',obs:''},
+{nr:129,apoiada:'AMAN',apoiadora:'4º B Log',partic:'37 militares',obj:'Apoio a instrução',obs:'Pessoal e material'},
+{nr:130,apoiada:'CIBld',apoiadora:'1º RCC',partic:'Alunos do CI Bld',obj:'Curso de Operação da VBCCC Leo 1 A5 BR',obs:'Pessoal e material'},
+{nr:131,apoiada:'CIBld',apoiadora:'4º RCC',partic:'Alunos do CI Bld',obj:'Curso de Operação da VBCCC Leo 1 A5 BR',obs:'Pessoal e material'},
+{nr:132,apoiada:'CIBld',apoiadora:'4º B Log',partic:'Alunos do CI Bld',obj:'Curso de Operação da VBCCC Leo 1 A5 BR',obs:'Pessoal e material'},
+{nr:133,apoiada:'NPOR/19º R C Mec',apoiadora:'1º RCC',partic:'30 militares',obj:'Conhecer a OM',obs:''},
+{nr:134,apoiada:'CI Pqdt GPB',apoiadora:'29º BIB',partic:'50 militares',obj:'Op Rincão',obs:'Pessoal e material'},
+{nr:135,apoiada:'CI Pqdt GPB',apoiadora:'3º GAC AP',partic:'50 militares',obj:'Op Rincão',obs:'Pessoal e material'},
+{nr:137,apoiada:'CI Pqdt GPB',apoiadora:'Cia C 6ª Bda',partic:'13 militares',obj:'Utlz Vtr Deslocamento Op Rincão',obs:'Pessoal e material'},
+{nr:138,apoiada:'CI Pqdt GPB',apoiadora:'Cia C 6ª Bda',partic:'Todos envolvidos na Op Rincão',obj:'Utlz Vtr Deslocamento Op Rincão',obs:'Pessoal e material'},
+{nr:139,apoiada:'CIBld',apoiadora:'3º GAC AP',partic:'—',obj:'Empréstimo de material e pessoal (M578)',obs:''},
+{nr:140,apoiada:'AMAN',apoiadora:'3º GAC AP',partic:'Instrutores',obj:'Apoiar com alojamento, alimentação, transporte – Rec PCI',obs:''},
+{nr:141,apoiada:'CPOR/PA',apoiadora:'4º B Log',partic:'37 militares',obj:'Identificar estrutura e material da OM',obs:'Pessoal e material'},
+{nr:142,apoiada:'CI Pqdt GPB',apoiadora:'Cia C 6ª Bda',partic:'Todos envolvidos na Op Rincão',obj:'Utlz Vtr Deslocamento Op Rincão',obs:'Pessoal e material'},
+{nr:143,apoiada:'ESA',apoiadora:'1º RCC',partic:'4 alunos',obj:'Viagem de instrução utilizando meios da OM',obs:''},
+{nr:144,apoiada:'EASA',apoiadora:'29º BIB',partic:'111 militares',obj:'Instrução VBTP M113',obs:'Pessoal e material'},
+{nr:145,apoiada:'EASA',apoiadora:'29º BIB',partic:'111 militares',obj:'Demonstração ataque de FT SU Bld',obs:'Pessoal e material'},
+{nr:146,apoiada:'EASA',apoiadora:'12º BE Cmb Bld',partic:'Instrutores e Alunos',obj:'Apoiar demonstração SU Bld com abertura de brechas',obs:'Pessoal e material'},
+{nr:147,apoiada:'EASA',apoiadora:'6ª Bia AAAe AP',partic:'40 militares',obj:'Conhecer a OM',obs:'Pessoal e material'},
+{nr:148,apoiada:'EASA',apoiadora:'6ª Bia AAAe AP',partic:'200 militares',obj:'Realizar defesa antiaérea',obs:'Pessoal e material'},
+{nr:149,apoiada:'EASA',apoiadora:'1º RCC',partic:'200 militares',obj:'Demonstração de ataque de posição sumariamente organizada',obs:'Pessoal e material'},
+{nr:150,apoiada:'EASA',apoiadora:'1º RCC',partic:'Instrutores e Alunos',obj:'Atualizar sargento CAS no emprego de MEM blindado',obs:'Pessoal e material'},
+{nr:151,apoiada:'EASA',apoiadora:'4ºRCC',partic:'4 militares',obj:'Viagem de instrução utilizando meios da OM',obs:'Pessoal'},
+{nr:152,apoiada:'EASA',apoiadora:'6º Esqd C Mec',partic:'Instrutores e Alunos',obj:'Demonstração de ataque (Força Oponente) — 3° Turno',obs:''},
+{nr:153,apoiada:'EASA',apoiadora:'3º GAC AP',partic:'Instrutores e Alunos',obj:'Alimentação, alojamento, instrução, demonstração REOP',obs:''},
+{nr:154,apoiada:'EASA',apoiadora:'4º B Log',partic:'58 militares',obj:'Apoio de transporte',obs:'Pessoal e material'},
+{nr:155,apoiada:'EASA',apoiadora:'4º B Log',partic:'58 militares',obj:'Apoio de alojamento e alimentação',obs:'Pessoal e material'},
+{nr:156,apoiada:'EASA',apoiadora:'4º B Log',partic:'111 militares',obj:'Conhecer a OM',obs:'Pessoal e material'},
+{nr:157,apoiada:'EASA',apoiadora:'Cia C',partic:'Instrutores e Alunos',obj:'Demonstração de PC de Bda (COT, COL, PCT)',obs:''},
+{nr:158,apoiada:'NPOR/3º R C Mec',apoiadora:'1º RCC',partic:'50 militares',obj:'Visitar a OM',obs:'Pessoal e material'},
+{nr:159,apoiada:'EASA',apoiadora:'3º GAC AP',partic:'41 militares',obj:'Conhecer a organização e as capacidades da OM',obs:'Pessoal e material'},
+{nr:160,apoiada:'NPOR/3º R C Mec',apoiadora:'4º B Log',partic:'25 militares',obj:'Conhecer a OM',obs:'Pessoal e material'},
+{nr:161,apoiada:'CPOR/PA',apoiadora:'7º BIB',partic:'34 militares',obj:'Visita na OM',obs:''},
+{nr:162,apoiada:'CPOR/PA',apoiadora:'12º BE Cmb Bld',partic:'35 militares',obj:'Identificar estrutura e material da OM',obs:''},
+{nr:163,apoiada:'NPOR/9º BI Mtz',apoiadora:'7º BIB',partic:'24 militares',obj:'Identificar estrutura e material da OM',obs:''},
+{nr:164,apoiada:'CPOR/PA',apoiadora:'3º GAC AP',partic:'Instrutores e Alunos',obj:'Apoiar com alimentação, alojamento, instrução',obs:''},
+{nr:165,apoiada:'CPOR/PA',apoiadora:'1º RCC',partic:'35 militares',obj:'Conhecer a OM',obs:''},
+{nr:166,apoiada:'EASA',apoiadora:'4º B Log',partic:'Alunos do Curso de Adj Cmdo',obj:'Visitar a OM',obs:'Pessoal e material'},
+{nr:167,apoiada:'AMAN',apoiadora:'3º GAC AP',partic:'Instrutores e Cadetes',obj:'Apoiar com alojamento, alimentação, transporte — Bia C e 2 Bio O',obs:''},
+{nr:168,apoiada:'CIBld',apoiadora:'12º BE Cmb Bld',partic:'Alunos do CI Bld',obj:'Estágio de CMT de OM',obs:''},
+{nr:170,apoiada:'EASA',apoiadora:'Cmdo 6ª Bda Inf Bld',partic:'1 militar',obj:'Palestra sobre a função do Adj Cmdo',obs:'Pessoal e material'},
+{nr:171,apoiada:'AMAN',apoiadora:'4º B Log',partic:'2 militares',obj:'Apoio a manobra escolar',obs:'Pessoal e material'},
+{nr:172,apoiada:'EASA',apoiadora:'4º B Log',partic:'Alunos do Curso de Adj Cmdo',obj:'Visitar a OM',obs:'Pessoal e material'},
+];
+
+function uniq(arr){return[...new Set(arr)].filter(Boolean).sort();}
+
+function buildFilters(){
+  const meses=MESES.filter(m=>pcis.some(p=>p.mes===m));
+  const selMes=document.getElementById('filtroMes');
+  meses.forEach(m=>{const o=document.createElement('option');o.value=m;o.text=m;selMes.appendChild(o);});
+  uniq(pcis.map(p=>p.apoiada)).forEach(a=>{const o=document.createElement('option');o.value=a;o.text=a;document.getElementById('filtroApoiada').appendChild(o);});
+  uniq(pcis.map(p=>p.apoiadora)).forEach(a=>{const o=document.createElement('option');o.value=a;o.text=a;document.getElementById('filtroApoiadora').appendChild(o);});
+  uniq(plan3.map(p=>p.apoiada)).forEach(a=>{const o=document.createElement('option');o.value=a;o.text=a;document.getElementById('filtroApoiada2').appendChild(o);});
+  uniq(plan3.map(p=>p.apoiadora)).forEach(a=>{const o=document.createElement('option');o.value=a;o.text=a;document.getElementById('filtroApoiadora2').appendChild(o);});
+}
+
+function renderMetrics(){
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">PCI Cronograma</div><div class="metric-val">${pcis.length}</div></div>
+    <div class="metric"><div class="metric-label">PCI CI Bld</div><div class="metric-val">${plan3.length}</div></div>
+    <div class="metric"><div class="metric-label">OM Apoiadoras</div><div class="metric-val">${uniq(pcis.map(p=>p.apoiadora)).length}</div></div>
+    <div class="metric"><div class="metric-label">OM Apoiadas</div><div class="metric-val">${uniq(pcis.map(p=>p.apoiada)).length}</div></div>
+  `;
+}
+
+function renderCronograma(){
+  const mes=document.getElementById('filtroMes').value;
+  const apoiada=document.getElementById('filtroApoiada').value;
+  const apoiadora=document.getElementById('filtroApoiadora').value;
+  const busca=document.getElementById('busca').value.toLowerCase();
+  let data=pcis.filter(p=>(!mes||p.mes===mes)&&(!apoiada||p.apoiada===apoiada)&&(!apoiadora||p.apoiadora===apoiadora)&&(!busca||p.obj.toLowerCase().includes(busca)||p.partic.toLowerCase().includes(busca)||p.apoiada.toLowerCase().includes(busca)||p.apoiadora.toLowerCase().includes(busca)));
+  const tbody=document.getElementById('tbody');
+  const noRes=document.getElementById('no-results');
+  if(!data.length){tbody.innerHTML='';noRes.style.display='';return;}
+  noRes.style.display='none';
+  tbody.innerHTML=data.map(p=>`<tr>
+    <td style="color:#6b6b66">${p.nr}</td>
+    <td><span class="badge badge-${BADGE[p.mes]||'fev'}">${p.mes.slice(0,3)}</span></td>
+    <td style="color:#6b6b66;font-size:11px">${p.ficha}</td>
+    <td style="white-space:nowrap;font-size:11.5px">${p.periodo}</td>
+    <td style="font-weight:500">${p.apoiada}</td>
+    <td>${p.apoiadora}</td>
+    <td style="color:#6b6b66;font-size:11.5px">${p.partic}</td>
+    <td>${p.obj}</td>
+    <td style="color:#6b6b66;font-size:11px">${p.obs||'—'}</td>
+  </tr>`).join('');
+}
+
+function renderPlan3(){
+  const apoiada=document.getElementById('filtroApoiada2').value;
+  const apoiadora=document.getElementById('filtroApoiadora2').value;
+  const busca=document.getElementById('busca2').value.toLowerCase();
+  let data=plan3.filter(p=>(!apoiada||p.apoiada===apoiada)&&(!apoiadora||p.apoiadora===apoiadora)&&(!busca||p.obj.toLowerCase().includes(busca)||p.apoiada.toLowerCase().includes(busca)||p.apoiadora.toLowerCase().includes(busca)));
+  const tbody=document.getElementById('tbody2');
+  const noRes=document.getElementById('no-results2');
+  if(!data.length){tbody.innerHTML='';noRes.style.display='';return;}
+  noRes.style.display='none';
+  tbody.innerHTML=data.map(p=>`<tr>
+    <td style="color:#6b6b66">${p.nr}</td>
+    <td style="font-weight:500">${p.apoiada}</td>
+    <td>${p.apoiadora}</td>
+    <td style="color:#6b6b66;font-size:11.5px">${p.partic}</td>
+    <td>${p.obj}</td>
+    <td style="color:#6b6b66;font-size:11px">${p.obs||'—'}</td>
+  </tr>`).join('');
+}
+
+let charts={};
+function renderCharts(){
+  if(charts.c1){charts.c1.destroy();charts.c2.destroy();charts.c3.destroy();}
+  const porMes=MESES.map(m=>pcis.filter(p=>p.mes===m).length);
+  charts.c1=new Chart(document.getElementById('chart1'),{type:'bar',data:{labels:MESES.map(m=>m.slice(0,3)),datasets:[{label:'PCI',data:porMes,backgroundColor:'#378ADD',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  const apoiadoraCount={};
+  pcis.forEach(p=>{apoiadoraCount[p.apoiadora]=(apoiadoraCount[p.apoiadora]||0)+1;});
+  const top10=Object.entries(apoiadoraCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  charts.c2=new Chart(document.getElementById('chart2'),{type:'bar',data:{labels:top10.map(x=>x[0]),datasets:[{label:'PCI',data:top10.map(x=>x[1]),backgroundColor:'#1D9E75',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  const apoiadaCount={};
+  pcis.forEach(p=>{apoiadaCount[p.apoiada]=(apoiadaCount[p.apoiada]||0)+1;});
+  const sortedA=Object.entries(apoiadaCount).sort((a,b)=>b[1]-a[1]);
+  charts.c3=new Chart(document.getElementById('chart3'),{type:'bar',data:{labels:sortedA.map(x=>x[0]),datasets:[{label:'PCI',data:sortedA.map(x=>x[1]),backgroundColor:'#7F77DD',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}});
+}
+
+function setView(v,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  ['cronograma','planejados','graficos'].forEach(x=>{document.getElementById('view-'+x).style.display=x===v?'':'none';});
+  if(v==='graficos')renderCharts();
+}
+
+buildFilters();
+renderMetrics();
+renderCronograma();
+renderPlan3();
+</script>
+</body>
+</html>
